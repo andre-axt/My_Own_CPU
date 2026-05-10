@@ -1,8 +1,8 @@
 module alu(
 	input clk,
 	input rst,
-	input [3:0] x, y,
-	input [1:0] op,
+	input [3:0] in_x, in_y,
+	input [1:0] in_op,
 	output reg [3:0] axy, bxy, //axy(LSB) bxy(MSB)
 	output reg c // Carry flag 
 
@@ -12,12 +12,12 @@ module alu(
 	wire [7:0] mul;
 	wire [3:0] and_op, or_op, xor_op;
 
-	assign sum = {1'b0, x} + {1'b0, y};
-	assign sub = {1'b0, x} - {1'b0, y};
-	assign mul = x * y;
-	assign and_op = x & y;
-	assign or_op = x | y;
-	assign xor_op = x ^ y;	 
+	assign sum = {1'b0, in_x} + {1'b0, in_y};
+	assign sub = {1'b0, in_x} - {1'b0, in_y};
+	assign mul = in_x * in_y;
+	assign and_op = in_x & in_y;
+	assign or_op = in_x | in_y;
+	assign xor_op = in_x ^ in_y;	 
 			
 	always @(posedge clk or posedge rst) begin
 		if (rst) begin
@@ -26,7 +26,7 @@ module alu(
 			c <= 0;
 		end
 		else begin
-			case (op)
+			case (in_op)
 				3'b000:	begin
 					axy <= sum[3:0];
 					bxy <= {3'b000,	sum[4]};
