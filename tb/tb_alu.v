@@ -330,7 +330,7 @@ module tb_alu();
             is_extended = 0;
             @(posedge clk);
             #1;
-            check_result(exp_result, exp_zero, 1'b0, exp_neg, $sformatf("JUMP %h", op));
+            check_result(exp_result, exp_zero, 1'b0, exp_neg, "JUMP");
         end
     endtask
 
