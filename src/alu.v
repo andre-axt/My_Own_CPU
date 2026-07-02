@@ -5,7 +5,7 @@ module alu(
 	input wire [3:0] operand,
 	input wire [7:0] data_in,
 	input wire [7:0] reg_a,
-       	input wire [7:0] reg_b,
+	input wire [7:0] reg_b,
 	input wire is_extended,
 
 	output reg [7:0] alu_result,
@@ -37,11 +37,12 @@ module alu(
 	always @(posedge clk or posedge rst) begin
 		if (rst) begin
 			alu_result <= 8'b0;
-            		zero_flag <= 1'b0;
-            		carry_flag <= 1'b0;
-            		negative_flag <= 1'b0;
-            		extended_result <= 9'b0;
-		end else begin
+            zero_flag <= 1'b0;
+            carry_flag <= 1'b0;
+            negative_flag <= 1'b0;
+            extended_result <= 9'b0;
+		end 
+		else begin
 			zero_flag <= 1'b0;
 			carry_flag <= 1'b0;
 			negative_flag <= 1'b0;
@@ -49,87 +50,88 @@ module alu(
 			case (opcode)
 				OP_ADD: begin
 					extended_result = {1'b0, reg_a} + {1'b0, reg_b};
-                    			alu_result <= extended_result[7:0];
-                    			carry_flag <= extended_result[8];
-                    			zero_flag <= (extended_result[7:0] == 8'b0);
-                    			negative_flag <= extended_result[7];
+	                alu_result <= extended_result[7:0];
+					carry_flag <= extended_result[8];
+					zero_flag <= (extended_result[7:0] == 8'b0);
+					negative_flag <= extended_result[7];
 
-                		end
+				end
 
 				OP_SUB: begin
 					extended_result = {1'b0, reg_a} - {1'b0, reg_b};
-                   			alu_result <= extended_result[7:0];
-                    			carry_flag <= ~extended_result[8]; 
-                    			zero_flag <= (extended_result[7:0] == 8'b0);
-                    			negative_flag <= extended_result[7];
-                		end
+					alu_result <= extended_result[7:0];
+					carry_flag <= ~extended_result[8]; 
+					zero_flag <= (extended_result[7:0] == 8'b0);
+					negative_flag <= extended_result[7];
+				end
 
 				OP_AND: begin 
-                    			alu_result <= reg_a & reg_b;
-                    			zero_flag <= ((reg_a & reg_b) == 8'b0);
-                    			negative_flag <= (reg_a & reg_b)[7];
-                		end
+					alu_result <= reg_a & reg_b;
+					zero_flag <= ((reg_a & reg_b) == 8'b0);
+					negative_flag <= reg_a[7] & reg_b[7];
+				end
 					
 				OP_OR: begin 
-                    			alu_result <= reg_a | reg_b;
-                    			zero_flag <= ((reg_a | reg_b) == 8'b0);
-                    			negative_flag <= (reg_a | reg_b)[7];
-                		end
+					alu_result <= reg_a | reg_b;
+					zero_flag <= ((reg_a | reg_b) == 8'b0);
+					negative_flag <= reg_a[7] | reg_b[7];
+				end
 
 				OP_XOR: begin 
-                   	 		alu_result <= reg_a ^ reg_b;
-                    			zero_flag <= ((reg_a ^ reg_b) == 8'b0);
-                    			negative_flag <= (reg_a ^ reg_b)[7];
-                		end
+					alu_result <= reg_a ^ reg_b;
+					zero_flag <= ((reg_a ^ reg_b) == 8'b0);
+					negative_flag <= reg_a[7] ^ reg_b[7];
+				end
 
 				OP_CMP: begin
-                    			extended_result = {1'b0, reg_a} - {1'b0, reg_b};
-                    			alu_result <= reg_a; 
-                    			carry_flag <= ~extended_result[8];
-                    			zero_flag <= (extended_result[7:0] == 8'b0);
-                    			negative_flag <= extended_result[7];
-                		end
+					extended_result = {1'b0, reg_a} - {1'b0, reg_b};
+					alu_result <= reg_a; 
+					carry_flag <= ~extended_result[8];
+					zero_flag <= (extended_result[7:0] == 8'b0);
+					negative_flag <= extended_result[7];
+				end
 
 				OP_SHL: begin 
-                    			alu_result <= reg_a << 1;
-                    			carry_flag <= reg_a[7]; 
-                    			zero_flag <= ((reg_a << 1) == 8'b0);
-                    			negative_flag <= (reg_a << 1)[7];
-                		end
+					alu_result <= reg_a << 1;
+					carry_flag <= reg_a[7]; 
+					zero_flag <= ((reg_a << 1) == 8'b0);
+					negative_flag <= reg_a[6];
+				end
 
 				OP_SHR: begin 
-                    			alu_result <= reg_a >> 1;
-                    			carry_flag <= reg_a[0]; 
-                    			zero_flag <= ((reg_a >> 1) == 8'b0);
-                    			negative_flag <= 1'b0;
-                		end
+					alu_result <= reg_a >> 1;
+					carry_flag <= reg_a[0]; 
+					zero_flag <= ((reg_a >> 1) == 8'b0);
+					negative_flag <= 1'b0;
+				end
 
 				OP_LOAD: begin 
-                    			if (is_extended) begin
-                        			alu_result <= data_in; 
-                    			end 
+					if (is_extended) begin
+						alu_result <= data_in; 
+					end 
 					else begin
-                        			alu_result <= {4'b0, operand}; 
-                    			end
-                    			zero_flag <= (alu_result == 8'b0);
-                    			negative_flag <= alu_result[7];
-                		end
+						alu_result <= {4'b0, operand}; 
+					end
+					zero_flag <= (alu_result == 8'b0);
+					negative_flag <= alu_result[7];
+				end
 
 				OP_STORE: begin 
 					alu_result <= reg_a; 
-                    			zero_flag <= (reg_a == 8'b0);
-                    			negative_flag <= reg_a[7];
-		    		end
+					zero_flag <= (reg_a == 8'b0);
+					negative_flag <= reg_a[7];
+				end
 
 				OP_JMP, OP_JZ, OP_JNZ, OP_JC, OP_JNC: begin
 					alu_result <= reg_a; 
-                    			zero_flag <= (reg_a == 8'b0);
-                    			negative_flag <= reg_a[7];
+					zero_flag <= (reg_a == 8'b0);
+					negative_flag <= reg_a[7];
 				end
 
 				default: begin
 					alu_result <= 8'b0;
 				end
+				
 			endcase
 		end
 	end
