@@ -1,69 +1,137 @@
 module alu(
-	input clk,
-	input rst,
-	input [7:0] in_x, in_y,
-	input [2:0] in_op,
-	output reg [7:0] axy, bxy, //axy(LSB) bxy(MSB)
-	output reg c // Carry flag 
+	input wire clk,
+	input wire rst,
+	input wire [3:0] opcode,
+	input wire [3:0] operand,
+	input wire [7:0] data_in,
+	input wire [7:0] reg_a,
+       	input wire [7:0] reg_b,
+	input wire is_extended,
+
+	output reg [7:0] alu_result,
+	output reg zero_flag,
+	output reg carry_flag,
+	output reg negative_flag	
 
 );
 
-	wire [8:0] sum, sub;
-	wire [15:0] mul;
-	wire [7:0] and_op, or_op, xor_op;
+	reg [8:0] extended_result;
 
-	assign sum = {1'b0, in_x} + {1'b0, in_y};
-	assign sub = {1'b0, in_x} - {1'b0, in_y};
-	assign mul = in_x * in_y;
-	assign and_op = in_x & in_y;
-	assign or_op = in_x | in_y;
-	assign xor_op = in_x ^ in_y;	 
-			
+	localparam OP_ADD   = 4'b0000;
+	localparam OP_SUB   = 4'b0001;
+	localparam OP_AND   = 4'b0010;
+	localparam OP_OR    = 4'b0011;
+	localparam OP_XOR   = 4'b0100;
+	localparam OP_CMP   = 4'b0101;
+	localparam OP_SHL   = 4'b0110;
+	localparam OP_SHR   = 4'b0111;
+	localparam OP_LOAD  = 4'b1000;
+	localparam OP_STORE = 4'b1001;
+	localparam OP_JMP   = 4'b1010;
+	localparam OP_JZ    = 4'b1011;
+	localparam OP_JNZ   = 4'b1100;
+	localparam OP_JC    = 4'b1101;
+	localparam OP_JNC   = 4'b1110;
+	localparam OP_EXT   = 4'b1111;
+
 	always @(posedge clk or posedge rst) begin
 		if (rst) begin
-			axy <= 0;
-			bxy <= 0;
-			c <= 0;
-		end
-		else begin
-			case (in_op)
-				3'b000:	begin
-					axy <= sum[7:0];
-					bxy <= {7'b0000000,	sum[8]};
-					c <= sum[8];
+			alu_result <= 8'b0;
+            		zero_flag <= 1'b0;
+            		carry_flag <= 1'b0;
+            		negative_flag <= 1'b0;
+            		extended_result <= 9'b0;
+		end else begin
+			zero_flag <= 1'b0;
+			carry_flag <= 1'b0;
+			negative_flag <= 1'b0;
+
+			case (opcode)
+				OP_ADD: begin
+					extended_result = {1'b0, reg_a} + {1'b0, reg_b};
+                    			alu_result <= extended_result[7:0];
+                    			carry_flag <= extended_result[8];
+                    			zero_flag <= (extended_result[7:0] == 8'b0);
+                    			negative_flag <= extended_result[7];
+
+                		end
+
+				OP_SUB: begin
+					extended_result = {1'b0, reg_a} - {1'b0, reg_b};
+                   			alu_result <= extended_result[7:0];
+                    			carry_flag <= ~extended_result[8]; 
+                    			zero_flag <= (extended_result[7:0] == 8'b0);
+                    			negative_flag <= extended_result[7];
+                		end
+
+				OP_AND: begin 
+                    			alu_result <= reg_a & reg_b;
+                    			zero_flag <= ((reg_a & reg_b) == 8'b0);
+                    			negative_flag <= (reg_a & reg_b)[7];
+                		end
+					
+				OP_OR: begin 
+                    			alu_result <= reg_a | reg_b;
+                    			zero_flag <= ((reg_a | reg_b) == 8'b0);
+                    			negative_flag <= (reg_a | reg_b)[7];
+                		end
+
+				OP_XOR: begin 
+                   	 		alu_result <= reg_a ^ reg_b;
+                    			zero_flag <= ((reg_a ^ reg_b) == 8'b0);
+                    			negative_flag <= (reg_a ^ reg_b)[7];
+                		end
+
+				OP_CMP: begin
+                    			extended_result = {1'b0, reg_a} - {1'b0, reg_b};
+                    			alu_result <= reg_a; 
+                    			carry_flag <= ~extended_result[8];
+                    			zero_flag <= (extended_result[7:0] == 8'b0);
+                    			negative_flag <= extended_result[7];
+                		end
+
+				OP_SHL: begin 
+                    			alu_result <= reg_a << 1;
+                    			carry_flag <= reg_a[7]; 
+                    			zero_flag <= ((reg_a << 1) == 8'b0);
+                    			negative_flag <= (reg_a << 1)[7];
+                		end
+
+				OP_SHR: begin 
+                    			alu_result <= reg_a >> 1;
+                    			carry_flag <= reg_a[0]; 
+                    			zero_flag <= ((reg_a >> 1) == 8'b0);
+                    			negative_flag <= 1'b0;
+                		end
+
+				OP_LOAD: begin 
+                    			if (is_extended) begin
+                        			alu_result <= data_in; 
+                    			end 
+					else begin
+                        			alu_result <= {4'b0, operand}; 
+                    			end
+                    			zero_flag <= (alu_result == 8'b0);
+                    			negative_flag <= alu_result[7];
+                		end
+
+				OP_STORE: begin 
+					alu_result <= reg_a; 
+                    			zero_flag <= (reg_a == 8'b0);
+                    			negative_flag <= reg_a[7];
+		    		end
+
+				OP_JMP, OP_JZ, OP_JNZ, OP_JC, OP_JNC: begin
+					alu_result <= reg_a; 
+                    			zero_flag <= (reg_a == 8'b0);
+                    			negative_flag <= reg_a[7];
 				end
-				3'b001: begin
-					axy <= sub[7:0];
-					bxy <= {7'b0000000, sub[8]};
-					c <= sub[8];
-				end
-				3'b010: begin
-					axy <= mul[7:0];	
-					bxy <= mul[15:8];
-					c <= 1'b0;
-				end
-				3'b011: begin
-					axy <= and_op;
-					bxy <= 8'b00000000;
-					c <= 1'b0;
-				end
-				3'b100:	begin
-					axy <= or_op;
-					bxy <= 8'b00000000;
-					c <= 1'b0;
-				end
-				3'b101: begin
-					axy <= xor_op;
-					bxy <= 8'b00000000;
-					c <= 1'b0;
-				end
+
 				default: begin
-					axy <= 0;
-					bxy <= 0;
-					c <= 0;
+					alu_result <= 8'b0;
 				end
 			endcase
 		end
 	end
-
+			
 endmodule
