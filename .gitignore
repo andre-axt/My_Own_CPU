@@ -1,0 +1,35 @@
+# --- Simulation Files ---
+*.vcd
+*.lxt
+*.fst
+*.ghw
+
+# --- Compilation/Tool Outputs ---
+# Icarus Verilog outputs
+*.vvp
+# ModelSim / Questa
+work/
+transcript
+*.wlf
+# Vivado / Quartus (if you use them later)
+*.log
+*.jou
+*.pb
+*.xpr
+*.sim/
+*.cache/
+*.runs/
+*.hw/
+*.ip_user_files/
+
+# --- System/IDE Files ---
+.DS_Store
+Thumbs.db
+# VS Code specific
+.vscode/
+# InteliJ / CLion
+.idea/
+
+# --- Temporary/Backup Files ---
+*~
+*.bak
