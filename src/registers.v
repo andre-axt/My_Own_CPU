@@ -10,9 +10,14 @@ module registers(
 );
 
     reg [7:0] registers [0:7];  
+    integer i; 
 
-    always @(posedge clk) begin
-        if (reg_write) begin
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            for (i = 0; i < 8; i = i + 1)
+                register[i] <= 8'b0;
+        end
+        else if (reg_write) begin
             registers[reg_sel] <= data_in;
         end
     end
