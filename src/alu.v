@@ -22,7 +22,7 @@ module alu(
 	localparam OP_AND   = 4'b0010;
 	localparam OP_OR    = 4'b0011;
 	localparam OP_XOR   = 4'b0100;
-	localparam OP_CMP   = 4'b0101;
+	localparam OP_PUSH   = 4'b0101;
 	localparam OP_SHL   = 4'b0110;
 	localparam OP_SHR   = 4'b0111;
 	localparam OP_LOAD  = 4'b1000;
@@ -32,7 +32,7 @@ module alu(
 	localparam OP_JNZ   = 4'b1100;
 	localparam OP_JC    = 4'b1101;
 	localparam OP_JNC   = 4'b1110;
-	localparam OP_EXT   = 4'b1111;
+	localparam OP_POP   = 4'b1111;
 
 	always @(posedge clk or posedge rst) begin
 		if (rst) begin
@@ -83,12 +83,11 @@ module alu(
 					negative_flag <= reg_a[7] ^ reg_b[7];
 				end
 
-				OP_CMP: begin
-					extended_result = {1'b0, reg_a} - {1'b0, reg_b};
-					alu_result <= reg_a; 
-					carry_flag <= ~extended_result[8];
-					zero_flag <= (extended_result[7:0] == 8'b0);
-					negative_flag <= extended_result[7];
+				OP_PUSH: begin
+					alu_result <= reg_a;
+                    zero_flag <= (reg_a == 8'b0);
+                    negative_flag <= reg_a[7];
+                    carry_flag <= 1'b0;
 				end
 
 				OP_SHL: begin 
@@ -128,6 +127,13 @@ module alu(
 					negative_flag <= reg_a[7];
 				end
 
+				OP_POP: begin
+					alu_result <= data_in;
+                    zero_flag <= (data_in == 8'b0);
+                    negative_flag <= data_in[7];
+                    carry_flag <= 1'b0;
+				end
+				
 				default: begin
 					alu_result <= 8'b0;
 				end
