@@ -12,7 +12,7 @@ module registers(
     reg [7:0] registers [0:7];  
 
     always @(posedge clk) begin
-        if (reg_write && reg_sel != 3'b000) begin
+        if (reg_write) begin
             registers[reg_sel] <= data_in;
         end
     end
