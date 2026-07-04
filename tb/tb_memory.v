@@ -24,7 +24,7 @@ module tb_memory;
     // Test sequence
     initial begin
         $dumpfile("memory.vcd");
-        $dumpvars(0, memory_tb);
+      $dumpvars(0, tb_memory);
 
         // Initialize signals
         clk = 0;
