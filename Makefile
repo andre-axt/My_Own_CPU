@@ -1,21 +1,32 @@
-SRC_DIR = src
-TB_DIR  = tb
-SIM_DIR = sim
+SRCDIR = src
+TBDIR  = tb
+SIMDIR = sim
 
-VLOG = iverilog
-VLOG_FLAGS = -o $(SIM_DIR)/tb_alu
-VVP = vvp
+MODULES = alu memory program_counter registers
 
-all: $(SIM_DIR)/tb_alu
-	$(VVP) $(SIM_DIR)/tb_alu
+TB_EXES = $(addprefix $(SIMDIR)/tb_, $(MODULES))
 
-$(SIM_DIR)/tb_alu: $(SRC_DIR)/alu.v $(TB_DIR)/tb_alu.v | $(SIM_DIR)
-	$(VLOG) $(VLOG_FLAGS) $^
+all: $(TB_EXES)
 
-$(SIM_DIR):
-	mkdir -p $(SIM_DIR)
+# Rule to build a testbench executable
+# $@ = sim/tb_<module>, $^ = src/<module>.v + tb/tb_<module>.v
+$(SIMDIR)/tb_%: $(SRCDIR)/%.v $(TBDIR)/tb_%.v
+	@mkdir -p $(SIMDIR)
+	iverilog -o $@ $^
 
+# Run a single testbench (e.g., make run-alu)
+run-%: $(SIMDIR)/tb_%
+	cd $(SIMDIR) && ./tb_$*
+
+# Run all testbenches
+run-all: $(TB_EXES)
+	@for exe in $(TB_EXES); do \
+		echo "Running $$(basename $$exe) ..."; \
+		(cd $(SIMDIR) && ./$$(basename $$exe)); \
+	done
+
+# Clean up: remove the entire sim directory
 clean:
-	rm -rf $(SIM_DIR)
+	rm -rf $(SIMDIR)
 
-.PHONY: all clean
+.PHONY: all clean run-all
