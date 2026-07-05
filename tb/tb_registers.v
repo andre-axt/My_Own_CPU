@@ -44,7 +44,8 @@ module tb_registers;
 
         // Test 1: Write and read each register
         $display("=== Test 1: Write and read each register ===");
-      for (int i = 0; i < 8; i = i + 1) begin
+        integer i;
+        for (int i = 0; i < 8; i = i + 1) begin
             reg_sel = i;
             data_in = 8'hA0 + i;   // 0xA0, 0xA1, ...
             reg_write = 1;
@@ -104,8 +105,10 @@ module tb_registers;
         rst = 1;
         #20;
         $display("After reset, registers[0] = %h, [1] = %h, [7] = %h", uut.registers[0], uut.registers[1], uut.registers[7]);
-      for (int i = 0; i < 8; i = i + 1) begin
-            if (uut.registers[i] !== 8'b0) $error("Register %0d not cleared after reset", i);
+
+        integer y;
+        for (y = 0; y < 8; y = y + 1) begin
+            if (uut.registers[y] !== 8'b0) $error("Register %0d not cleared after reset", y);
         end
         rst = 0;
 
