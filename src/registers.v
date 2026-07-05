@@ -15,7 +15,7 @@ module registers(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             for (i = 0; i < 8; i = i + 1)
-                register[i] <= 8'b0;
+                registers[i] <= 8'b0;
         end
         else if (reg_write) begin
             registers[reg_sel] <= data_in;
